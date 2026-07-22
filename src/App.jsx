@@ -199,12 +199,12 @@ export default function App() {
               <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight text-gray-900">Vinayak Enterprises</h1>
               <p className="text-gray-700 text-md font-bold">Sales Team Dashboard — Pending Dispatch Summary</p>
             </div>
-            {/* <div className="flex items-center gap-4">
+            <div className="flex items-center gap-4">
               <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200 shadow-xs">
                 <span className="h-2 w-2 rounded-full bg-emerald-500 animate-ping"></span>
                 Live Data Connected
               </span>
-            </div> */}
+            </div>
           </header>
 
           {/* CARDS SECTION */}
