@@ -43,6 +43,31 @@ const getWeekdayFromDateStr = (dateStr) => {
   return weekdays[d.getDay()];
 };
 
+const parseDateStr = (dateStr) => {
+  if (!dateStr) return null;
+  const parts = dateStr.split(/[-/]/);
+  let d;
+  if (parts.length === 3) {
+    if (parts[0].length === 4) {
+      d = new Date(parts[0], parts[1] - 1, parts[2]);
+    } else {
+      const day = parseInt(parts[0], 10);
+      const year = parseInt(parts[2], 10);
+      const monthStr = parts[1];
+      const monthNames = ["jan", "feb", "mar", "apr", "may", "jun", "jul", "aug", "sep", "oct", "nov", "dec"];
+      let monthIndex = monthNames.indexOf(monthStr.toLowerCase());
+      if (monthIndex === -1) {
+        monthIndex = parseInt(monthStr, 10) - 1;
+      }
+      d = new Date(year, monthIndex, day);
+    }
+  } else {
+    d = new Date(dateStr);
+  }
+  if (!d || isNaN(d.getTime())) return null;
+  return d;
+};
+
 const isUnattributedIssue = (name) => !!name && name.startsWith("Unattributed");
 
 const getWeekMajorityMonth = (startMondayStr) => {
@@ -189,6 +214,26 @@ export default function App() {
     const peakDay = pendingDates.find(d => d.totalQty === maxQty) || pendingDates[0];
     const avgQtyPerDay = pendingDates.length > 0 ? (grandTotalQty / pendingDates.length).toFixed(1) : 0;
 
+    // Calculate overdue (before today) pending orders
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+
+    let overdueOrdersCount = 0;
+    let overdueQty = 0;
+
+    pendingDates.forEach(day => {
+      const pDate = parseDateStr(day.dispatchDate);
+      if (pDate) {
+        pDate.setHours(0, 0, 0, 0);
+        if (pDate < today) {
+          overdueOrdersCount += day.orderCount || (day.orders ? day.orders.length : 0);
+          overdueQty += day.totalQty || 0;
+        }
+      }
+    });
+
+    const overdueQtyFormatted = Number(overdueQty.toFixed(2));
+
     return (
       <div className="min-h-screen text-gray-900 font-sans p-4 sm:p-8 bg-gray-50">
         <div className="max-w-7xl mx-auto space-y-8">
@@ -199,16 +244,16 @@ export default function App() {
               <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight text-gray-900">Vinayak Enterprises</h1>
               <p className="text-gray-700 text-md font-bold">Sales Team Dashboard — Pending Dispatch Summary</p>
             </div>
-            <div className="flex items-center gap-4">
+            {/* <div className="flex items-center gap-4">
               <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200 shadow-xs">
                 <span className="h-2 w-2 rounded-full bg-emerald-500 animate-ping"></span>
                 Live Data Connected
               </span>
-            </div>
+            </div> */}
           </header>
 
           {/* CARDS SECTION */}
-          <section className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+          <section className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
             <div className="bg-white border border-gray-200 p-5 rounded-xl shadow-xs hover:shadow-md transition-shadow duration-200 flex flex-col justify-between">
               <div className="flex items-center justify-between">
                 <span className="text-sm font-bold text-gray-800 capitalize">Total Pending Orders</span>
@@ -239,7 +284,24 @@ export default function App() {
 
             <div className="bg-white border border-gray-200 p-5 rounded-xl shadow-xs hover:shadow-md transition-shadow duration-200 flex flex-col justify-between">
               <div className="flex items-center justify-between">
-                <span className="text-sm font-bold text-gray-800 capitalize">Date With Most Dispatch Ordes</span>
+                <span className="text-sm font-bold text-gray-800 capitalize">Pending Orders (Before Today)</span>
+                <div className="bg-rose-50 p-2 rounded-lg">
+                  <ClockFading className='text-rose-600 size-6' />
+                </div>
+              </div>
+              <div className="mt-4 flex items-center justify-between">
+                <p className="text-xl font-black text-gray-900">
+                  {overdueOrdersCount} Orders
+                </p>
+                <span className="text-lg text-rose-600 font-bold">
+                  {overdueQtyFormatted} MT
+                </span>
+              </div>
+            </div>
+
+            <div className="bg-white border border-gray-200 p-5 rounded-xl shadow-xs hover:shadow-md transition-shadow duration-200 flex flex-col justify-between">
+              <div className="flex items-center justify-between">
+                <span className="text-sm font-bold text-gray-800 capitalize">Date With Most Dispatch Orders</span>
                 <div className="bg-amber-50 p-2 rounded-lg">
                   <TrendingUp className='text-amber-600 size-6' />
                 </div>
