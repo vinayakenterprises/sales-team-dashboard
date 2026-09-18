@@ -258,7 +258,7 @@ export default function DashboardView({
                   <div
                     className={`transition-all duration-300 ease-in-out overflow-hidden bg-gray-50/50 ${
                       isExpanded
-                        ? "max-h-[1000px] opacity-100 border-b border-gray-100"
+                        ? "max-h-250 opacity-100 border-b border-gray-100"
                         : "max-h-0 opacity-0 pointer-events-none"
                     }`}
                   >
