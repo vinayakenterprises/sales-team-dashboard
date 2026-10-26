@@ -11,7 +11,20 @@ export const getWeekdayFromDateStr = (dateStr) => {
       const day = parseInt(parts[0], 10);
       const year = parseInt(parts[2], 10);
       const monthStr = parts[1];
-      const monthNames = ["jan", "feb", "mar", "apr", "may", "jun", "jul", "aug", "sep", "oct", "nov", "dec"];
+      const monthNames = [
+        "jan",
+        "feb",
+        "mar",
+        "apr",
+        "may",
+        "jun",
+        "jul",
+        "aug",
+        "sep",
+        "oct",
+        "nov",
+        "dec",
+      ];
       let monthIndex = monthNames.indexOf(monthStr.toLowerCase());
       if (monthIndex === -1) {
         monthIndex = parseInt(monthStr, 10) - 1;
@@ -37,7 +50,20 @@ export const parseDateStr = (dateStr) => {
       const day = parseInt(parts[0], 10);
       const year = parseInt(parts[2], 10);
       const monthStr = parts[1];
-      const monthNames = ["jan", "feb", "mar", "apr", "may", "jun", "jul", "aug", "sep", "oct", "nov", "dec"];
+      const monthNames = [
+        "jan",
+        "feb",
+        "mar",
+        "apr",
+        "may",
+        "jun",
+        "jul",
+        "aug",
+        "sep",
+        "oct",
+        "nov",
+        "dec",
+      ];
       let monthIndex = monthNames.indexOf(monthStr.toLowerCase());
       if (monthIndex === -1) {
         monthIndex = parseInt(monthStr, 10) - 1;
@@ -57,13 +83,19 @@ export const calculateBundle = (val) => {
   } else if (val > 3) {
     return Math.round(val / 3);
   } else {
-    return 'N/A';
+    return "N/A";
   }
 };
 
 export const calculateDashboardMetrics = (pendingDates = []) => {
-  const maxQty = pendingDates.length > 0 ? Math.max(0, ...pendingDates.map(d => d.totalQty || 0)) : 0;
-  const peakDay = pendingDates.find(d => (d.totalQty || 0) === maxQty) || pendingDates[0] || null;
+  const maxQty =
+    pendingDates.length > 0
+      ? Math.max(0, ...pendingDates.map((d) => d.totalQty || 0))
+      : 0;
+  const peakDay =
+    pendingDates.find((d) => (d.totalQty || 0) === maxQty) ||
+    pendingDates[0] ||
+    null;
 
   const today = new Date();
   today.setHours(0, 0, 0, 0);
@@ -71,12 +103,13 @@ export const calculateDashboardMetrics = (pendingDates = []) => {
   let overdueOrdersCount = 0;
   let overdueQty = 0;
 
-  pendingDates.forEach(day => {
+  pendingDates.forEach((day) => {
     const pDate = parseDateStr(day.dispatchDate);
     if (pDate) {
       pDate.setHours(0, 0, 0, 0);
       if (pDate < today) {
-        overdueOrdersCount += day.orderCount || (day.orders ? day.orders.length : 0);
+        overdueOrdersCount +=
+          day.orderCount || (day.orders ? day.orders.length : 0);
         overdueQty += day.totalQty || 0;
       }
     }
@@ -87,6 +120,59 @@ export const calculateDashboardMetrics = (pendingDates = []) => {
   return {
     peakDay,
     overdueOrdersCount,
-    overdueQtyFormatted
+    overdueQtyFormatted,
+  };
+};
+
+export const filterDrossOrders = (data) => {
+  if (!data || !Array.isArray(data.pendingDates)) {
+    return data;
+  }
+
+  let totalQty = 0;
+  let totalOrders = 0;
+
+  const filteredPendingDates = data.pendingDates
+    .map((day) => {
+      if (!Array.isArray(day.orders)) {
+        totalQty += Number(day.totalQty) || 0;
+        totalOrders += Number(day.orderCount) || 0;
+        return day;
+      }
+
+      const filteredOrders = day.orders.filter(
+        (order) =>
+          String(order.dispatchType || "")
+            .trim()
+            .toLowerCase() !== "dross",
+      );
+
+      if (filteredOrders.length === 0) {
+        return null;
+      }
+
+      const dayQty = filteredOrders.reduce(
+        (sum, o) => sum + (Number(o.qty) || 0),
+        0,
+      );
+      const roundedDayQty = Math.round(dayQty * 100) / 100;
+
+      totalQty += roundedDayQty;
+      totalOrders += filteredOrders.length;
+
+      return {
+        ...day,
+        orders: filteredOrders,
+        orderCount: filteredOrders.length,
+        totalQty: roundedDayQty,
+      };
+    })
+    .filter(Boolean);
+
+  return {
+    ...data,
+    pendingDates: filteredPendingDates,
+    grandTotalQty: Math.round(totalQty * 100) / 100,
+    totalPendingOrders: totalOrders,
   };
 };

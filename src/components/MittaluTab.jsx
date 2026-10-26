@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import DashboardView from './DashboardView';
+import { filterDrossOrders } from '../utils/helpers';
 
 const RAW_URL =
   import.meta.env.VITE_MITTALU_API_URL ||
@@ -48,7 +49,8 @@ export default function MittaluTab({ isActive, onLoadingChange }) {
       }
 
       if (result && (result.pendingDates || result.totalPendingOrders !== undefined)) {
-        setData(result);
+        const filteredData = filterDrossOrders(result);
+        setData(filteredData);
       } else {
         throw new Error('Invalid data format received from Mittalu API');
       }
