@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import DashboardView from './DashboardView';
+import { filterDrossOrders } from '../utils/helpers';
 
 const VINAYAK_API_URL =
   import.meta.env.VITE_VINAYAK_API_URL ||
@@ -30,7 +31,8 @@ export default function VinayakTab({ isActive, onLoadingChange }) {
       const result = await response.json();
 
       if (result && (result.pendingDates || result.totalPendingOrders !== undefined)) {
-        setData(result);
+        const filteredData = filterDrossOrders(result);
+        setData(filteredData);
       } else {
         throw new Error('Invalid data format received from Vinayak API');
       }
