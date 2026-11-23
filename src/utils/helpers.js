@@ -140,12 +140,31 @@ export const filterDrossOrders = (data) => {
         return day;
       }
 
-      const filteredOrders = day.orders.filter(
-        (order) =>
-          String(order.dispatchType || "")
+      const filteredOrders = day.orders.filter((order) => {
+        const dispatchTypeVal =
+          order.dispatchType ??
+          order["Dispatch Type"] ??
+          order.dispatch_type ??
+          "";
+        const isDross =
+          String(dispatchTypeVal)
             .trim()
-            .toLowerCase() !== "dross",
-      );
+            .toLowerCase() === "dross";
+
+        const clientNameVal =
+          order.clientName ??
+          order["Client Name"] ??
+          order.client_name ??
+          "";
+        const normalizedClient = String(clientNameVal)
+          .trim()
+          .toLowerCase()
+          .replace(/\./g, "")
+          .replace(/\s+/g, " ");
+        const isMittalu = normalizedClient === "mittalu pvt ltd";
+
+        return !isDross && !isMittalu;
+      });
 
       if (filteredOrders.length === 0) {
         return null;
